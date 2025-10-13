@@ -4,8 +4,7 @@ from password_system import password_system  # ✅ Import du système de mot de 
 # --- Vérification des éléments IP et masque ---
 def checkElements(element, type):
     elementValid = True
-    partieReseau = True
-    adresseDecoupe = []  # ✅ Évite les erreurs de variable non initialisée
+    adresseDecoupe = []
 
     if "." not in element:
         print(f"Erreur : {type} n'est pas conforme. Veuillez séparer les nombres avec un point.")
@@ -38,19 +37,18 @@ def checkElements(element, type):
                 print("Erreur: l'adresse IP n'est pas conforme. Adresse IP réservée, donc refusée.")
                 return False
 
-        # Vérifications spécifiques masque
-        if type == "le masque":
-            if x == 0 and val != 255:
-                print("Erreur: le masque n'est pas conforme. Le premier numéro doit être 255.")
-                return False
-            if val != 255:
-                partieReseau = False
-            if val != 0 and not partieReseau:
-                print("Erreur: le masque n'est pas conforme. Un masque ne peut pas avoir des chiffres autres que 0 après un 0.")
-                return False
-            if x == 3 and val > 252:
-                print("Erreur: le masque n'est pas conforme. Un masque ne peut pas se terminer par 253 ou plus.")
-                return False
+    # ✅ Vérification spécifique du masque corrigée
+    if type == "le masque":
+        masque_bits = "".join([format(int(part), "08b") for part in adresseDecoupe])
+        if "01" in masque_bits:
+            print("Erreur: le masque n'est pas conforme. Les bits du masque doivent être continus (ex: 11111111.11111110.00000000.00000000)")
+            return False
+        if int(adresseDecoupe[0]) != 255:
+            print("Erreur: le masque n'est pas conforme. Le premier numéro doit être 255.")
+            return False
+        if int(adresseDecoupe[3]) > 252:
+            print("Erreur: le masque n'est pas conforme. Un masque ne peut pas se terminer par 253 ou plus.")
+            return False
 
     return True
 
@@ -143,10 +141,8 @@ def programFinal(ip, masque):
 
 # --- Lancement du programme ---
 if __name__ == "__main__":
-    # Étape 1 : système de mot de passe
     password_system()
 
-    # Étape 2 : saisie IP et masque avec vérification
     print("\n=== Authentification réussie ===\n")
 
     while True:
@@ -161,5 +157,4 @@ if __name__ == "__main__":
             break
         print("Veuillez réessayer.\n")
 
-    # Étape 3 : calculs finaux
     programFinal(ip_input, mask_input)
