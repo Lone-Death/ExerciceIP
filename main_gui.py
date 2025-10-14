@@ -3,6 +3,14 @@ import os
 import tkinter as tk
 from tkinter import messagebox
 
+
+# =========================
+# AJOUT : VARIABLE(S) IMPORTANTE(S)
+# =========================
+
+# --- Variable qui décide du mode de calcul (NE PAS TOUCHER POUR LE MOMENT)---
+isClassFull = True
+
 # =========================
 # BASE DE DONNÉES (SQLite)
 # =========================
@@ -41,16 +49,70 @@ def update_password(new_pass):
 
 
 # =========================
+# FONCTIONS CLASSLESS
+# =========================
+
+# --- AJOUT : Divise et renvoie l'adresse IP en deux à la présence de '/' -> est vérifier dans checkElement ---
+def splitElements(element):
+    if "/" in element:
+        masque = element.split("/", 1)[1]
+        element = element.split("/", 1)[0]
+    return masque, element
+
+# --- AJOUT : Créée le masque en binaire en classless (uniquement pour le masque) ---
+def toBinary(masque):
+    masqueBinary = []
+    while len(masqueBinary) < 4:
+        segment = []
+        #découpage en ségments
+        for x in range(0, 8):
+            if int(masque) > 0:
+                segment.append("1")
+                masque = int(masque) - 1
+            else:
+                segment.append("0")
+        #Donne un point tant qu'il le peut
+        if len(masqueBinary) != 3:
+            masqueBinary.append(("".join(segment) + "."))
+        else:
+            masqueBinary.append("".join(segment))
+
+    return("".join(masqueBinary))
+
+# =========================
 # VALIDATION IP / MASQUE
 # =========================
 def checkElements(element, type):
-    partieReseau = True
 
     if "." not in element:
         messagebox.showerror("Erreur", f"{type} n'est pas conforme. Veuillez séparer les nombres avec un point.")
         return False
 
+    # --- AJOUT : fait les calculs en classless si isClassfull est Faux ---
+    if isClassFull == False:
+        if "/" in element:
+            # Séparation du masque et de l'adresse IP
+            masque, element = splitElements(element)
+
+            # Vérifications de la partie masque
+            # s'il y a présence de lettres
+            if masque.isdigit() == False:
+                messagebox.showerror("Erreur",  f" {type} n'est pas conforme. Veuillez ne mettre que des chiffres et aucun espace après le '/'. Ne mettez qu'un seul '/'.")
+                return False
+
+            # s'il n'est pas entre 8 et 30
+            if int(masque) not in range(8, 31):
+                messagebox.showerror("Erreur", f"{type} n'est pas conforme. La partie du masque doit avoir une valeur comprise entre 8 et 30.")
+                return False
+
+    # Lors d'un oublie du '/'
+    else:
+        messagebox.showerror("Erreur",  f"sur {type}. Vous avez oublier le '/' entre la partie adresse IP et le masque.")
+        return False
+    # --- FIN DE L'AJOUT ---
+
     adresseDecoupe = element.split(".")
+
     if len(adresseDecoupe) != 4:
         messagebox.showerror("Erreur", f"{type} n'est pas conforme. Veuillez vérifier sa taille.")
         return False
@@ -91,7 +153,6 @@ def checkElements(element, type):
             return False
 
     return True
-
 
 # =========================
 # CALCUL ADRESSE RESEAU / BROADCAST
