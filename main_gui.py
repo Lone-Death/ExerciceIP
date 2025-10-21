@@ -106,9 +106,9 @@ def checkElements(element, type):
                 return False
 
     # Lors d'un oublie du '/'
-    else:
-        messagebox.showerror("Erreur",  f"sur {type}. Vous avez oublier le '/' entre la partie adresse IP et le masque.")
-        return False
+        else:
+            messagebox.showerror("Erreur",  f"sur {type}. Vous avez oublier le '/' entre la partie adresse IP et le masque.")
+            return False
     # --- FIN DE L'AJOUT ---
 
     adresseDecoupe = element.split(".")

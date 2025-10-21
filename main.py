@@ -7,7 +7,7 @@ from password_system import password_system  # ✅ Import du système de mot de 
 # =========================
 
 # --- Variable qui décide du mode de calcul ---
-isClassFull = False
+isClassFull = True
 
 # =========================
 # FONCTIONS CLASSLESS
@@ -194,6 +194,12 @@ def calculRéseauBroadcast(ip, masque):
     IPFinal = "".join(binaryFullIP)
     print(IPFinal)
 
+# =========================
+# AJOUT : FONCTIONS DE CALCUL DE SOUS-RÉSEAUX
+# =========================
+def calculSousRéseau(ip, masque):
+    print("test")
+
 # --- Programme principal ---
 def programFinal(ip, masque=""):
     # Lance le programme selon le mode
@@ -208,6 +214,9 @@ def programFinal(ip, masque=""):
             calculRéseauDiffusion(calculBinaire(ip), toBinary(masque))
             print("Adresse Broadcast")
             calculRéseauBroadcast(calculBinaire(ip), toBinary(masque))
+
+"192.168.19.49"
+"255.255.240.0"
 
 
 # --- Lancement du programme ---
