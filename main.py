@@ -1,7 +1,6 @@
 import decimal
 from password_system import password_system  # ✅ Import du système de mot de passe
 
-
 # =========================
 # VARIABLE(S) IMPORTANTE(S)
 # =========================
@@ -39,7 +38,6 @@ def toBinary(masque):
             masqueBinary.append("".join(segment))
 
     return("".join(masqueBinary))
-
 
 # --- Vérification des éléments IP et masque ---
 def checkElements(element, type):
@@ -136,9 +134,8 @@ def calculBinaire(element):
 
         partieAdresse.reverse()
         adresseBinaire.append("".join(partieAdresse))
-        if len(adresseBinaire) < 6:
-            adresseBinaire.append(".")
-    return "".join(adresseBinaire)
+
+    return ".".join(adresseBinaire)
 
 # =========================
 # FONCTIONS DE CALCUL DE RÉSEAU
@@ -162,61 +159,142 @@ def calculRéseauDiffusion(ip, masque):
         result = 0
         for y in range(0, len(segmentBinaryIP)):
             calculatedSegment = int(segmentBinaryIP[y]) * (2 ** ((len(segmentBinaryIP) - 1) - y))
-            result = result + calculatedSegment
-        binaryFullIP.append(str(abs(result)))
-        if len(binaryFullIP) < 6:
-            binaryFullIP.append(".")
-    IPFinal = "".join(binaryFullIP)
-    print(IPFinal)
+            result = result + abs(calculatedSegment)
+        binaryFullIP.append(str(result))
+
+    IPFinal = ".".join(binaryFullIP)
+    return IPFinal
 
 # --- Calcul adresse réseau de broadcast ---
 def calculRéseauBroadcast(ip, masque):
     ipDecoupe = ip.split(".", 3)
     masqueDecoupe = masque.split(".", 3)
-    binaryFullIP = []
+    fullIP = []
 
     for n in range(0, len(ipDecoupe)):
         segmentIp = list(ipDecoupe[n])
         segmentMasque = list(masqueDecoupe[n])
         segmentBinaryIP = []
+
         for x in range(0, len(segmentMasque)):
             if segmentMasque[x] == "1":
                 segmentBinaryIP.append(segmentIp[x])
             else:
                 segmentBinaryIP.append("1")
         result = 0
+
         for y in range(0, len(segmentBinaryIP)):
             calculatedSegment = int(segmentBinaryIP[y]) * (2 ** ((len(segmentBinaryIP) - 1) - y))
             result = result + calculatedSegment
-        binaryFullIP.append(str(abs(result)))
-        if len(binaryFullIP) < 6:
-            binaryFullIP.append(".")
-    IPFinal = "".join(binaryFullIP)
-    print(IPFinal)
+        fullIP.append(str(abs(result)))
+    IPFinal = ".".join(fullIP)
+    return IPFinal
 
-# =========================
-# AJOUT : FONCTIONS DE CALCUL DE SOUS-RÉSEAUX
-# =========================
-def calculSousRéseau(ip, masque):
-    print("test")
+# AJOUT : --- Calcul des sous réseaux ---
+def calculSousRéseau(ip, masque, nbrRes):
+    #Variables importantes
+    resMax = 0 #Réseaux possibles au max
+    n = 0 #Facteur exposant
+    newMasque = [] #Masque créer pour la création de sous réseaux.
+    PAS = 0 #PAS
+    octectPAS = 0 #Octet sur lequel le PAS se situe.
+
+    #Calcul de n -> nombres de bits à changer
+    if int(nbrRes) in range(1, 101):
+        while (resMax <= int(nbrRes)):
+            resMax = (2 ** n) - 1
+            n = n + 1
+    else:
+        return print("Erreur : Le nombre de sous réseaux doit être compris entre 1 et 100")
+
+    #Division du masque
+    splitMasque = masque.split(".", 3)
+
+    #Création d'un nouveau masque
+    for numb in range(0, len(splitMasque)):
+        segmentMasque = list(splitMasque[numb])
+        newMasqueSeg = []
+
+        #Ajout par segments. Ajouts des nouveaux bits.
+        for x in range(0, len(segmentMasque)):
+            #Ajout des nouveaux bits
+            if segmentMasque[x] == "0" and n > 1:
+                newMasqueSeg.append("1")
+                n = n - 1
+
+                posPAS = (len(segmentMasque) - 1) - x #Position du Pas dans l'octect pour le calculer
+                PAS = 2 ** posPAS #calcul du PAS
+                octectPAS = numb + 1 # octet sur lequel le PAS est situé.
+
+            else :
+                newMasqueSeg.append(segmentMasque[x])
+
+        #rassemble le tout
+        newMasque.append(("".join(newMasqueSeg)))
+
+    # nouveau masque final (en binaire)
+    newMasque = ".".join(newMasque)
+
+    #Afficher les résultats importants
+    bc = calculRéseauBroadcast(ip, masque)
+    ip = calculRéseauDiffusion(ip, masque)
+
+    print(f"Adresse du réseau : {ip}, Adresse Broadcast du réseau : {bc}")
+    print(f"Le Pas vaut {PAS} et se trouve sur l'octet n° {octectPAS}")
+    print("")
+
+    #Ressort un "tableau" de sous réseaux
+    for res in range(0, int(nbrRes)):
+
+        sousResIP = ip #Sous réseau adresse IP
+
+        sousResBC = calculRéseauBroadcast(calculBinaire(sousResIP), newMasque) # Sous réseau adresse Broadcast
+
+        splitIp = sousResIP.split(".", 3) #découpe de l'adress Ip du sous réseaux pour modifications
+
+        # première adresse IP
+        sousResFirstIP = splitIp
+        sousResFirstIP[octectPAS - 1] = str(int(sousResFirstIP[octectPAS - 1])+ 1)
+        sousResFirstIP = ".".join(sousResFirstIP)
+
+        #dernière adresse IP
+        sousResLastIP = sousResBC.split(".", 3)
+        sousResLastIP[octectPAS - 1] = str(int(sousResLastIP[octectPAS - 1])- 1)
+        sousResLastIP = ".".join(sousResLastIP)
+
+        #Phrase affichant les résultats
+        print(f"sous réseau n° {res + 1} : Adresse sous réseau : {sousResIP}; Adresse de Broadcast : {sousResBC}; 1ère IP : {sousResFirstIP}; Dernière IP : {sousResLastIP}.")
+        print("")
+
+        #Modifie l'adresse IP pour continuer la boucle.
+        splitIp = ip.split(".", 3)
+        splitIp[octectPAS - 1] = str(int(splitIp[octectPAS - 1]) + PAS)
+        ip = ".".join(splitIp)
 
 # --- Programme principal ---
-def programFinal(ip, masque=""):
+def programFinal(ip, sousRes, masque=""):
     # Lance le programme selon le mode
+
+    if isClassFull:
+        calculSousRéseau(calculBinaire(ip), calculBinaire(masque), sousRes)
+    else:
+        masque, ip = splitElements(ip)
+        calculSousRéseau(calculBinaire(ip), toBinary(masque), sousRes)
+    """
     if isClassFull:
             print("Adresse de diffusion")
-            calculRéseauDiffusion(calculBinaire(ip), calculBinaire(masque))
+            print(calculRéseauDiffusion(calculBinaire(ip), calculBinaire(masque)))
             print("Adresse Broadcast")
-            calculRéseauBroadcast(calculBinaire(ip), calculBinaire(masque))
+            print(calculRéseauBroadcast(calculBinaire(ip), calculBinaire(masque)))
     else:
             masque, ip = splitElements(ip)
             print("Adresse de diffusion")
-            calculRéseauDiffusion(calculBinaire(ip), toBinary(masque))
+            print(calculRéseauDiffusion(calculBinaire(ip), toBinary(masque)))
             print("Adresse Broadcast")
-            calculRéseauBroadcast(calculBinaire(ip), toBinary(masque))
-
-"192.168.19.49"
-"255.255.240.0"
+            print(calculRéseauBroadcast(calculBinaire(ip), toBinary(masque)))
+   """
+"192.168.1.53/24"
+"255.255.255.0"
 
 
 # --- Lancement du programme ---
@@ -237,4 +315,7 @@ if __name__ == "__main__":
         else:
             mask_input = ""
 
-        programFinal(ip_input, mask_input)
+        while True:
+            sr_input = input("Entrez le nombre de sous réseau : ").strip()
+            break
+        programFinal(ip_input, sr_input, mask_input)
