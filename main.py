@@ -73,11 +73,12 @@ def checkElements(element, type):
         print(f"Erreur: {type} n'est pas conforme. Veuillez vérifier sa taille/nombre de points.")
         return False
 
-    for x in range(3):
+    for x in range(0, len(adresseDecoupe)):
         # Vérifie que chaque partie est bien numérique
         if not adresseDecoupe[x].isdigit():
             print(f"Erreur: {type} n'est pas conforme. Veuillez utiliser uniquement des chiffres.")
             return False
+            break
 
         val = int(adresseDecoupe[x])
 
@@ -107,7 +108,6 @@ def checkElements(element, type):
         if int(adresseDecoupe[3]) > 252:
             print("Erreur: le masque n'est pas conforme. Un masque ne peut pas se terminer par 253 ou plus.")
             return False
-
     return True
 
 # =========================
@@ -200,12 +200,9 @@ def calculSousRéseau(ip, masque, nbrRes):
     octectPAS = 0 #Octet sur lequel le PAS se situe.
 
     #Calcul de n -> nombres de bits à changer
-    if int(nbrRes) in range(1, 101):
-        while (resMax <= int(nbrRes)):
-            resMax = (2 ** n) - 1
-            n = n + 1
-    else:
-        return print("Erreur : Le nombre de sous réseaux doit être compris entre 1 et 100")
+    while (resMax <= int(nbrRes)):
+        resMax = (2 ** n) - 1
+        n = n + 1
 
     #Division du masque
     splitMasque = masque.split(".", 3)
@@ -240,8 +237,7 @@ def calculSousRéseau(ip, masque, nbrRes):
     ip = calculRéseauDiffusion(ip, masque)
 
     print(f"Adresse du réseau : {ip}, Adresse Broadcast du réseau : {bc}")
-    print(f"Le Pas vaut {PAS} et se trouve sur l'octet n° {octectPAS}")
-    print("")
+    print(f"Le Pas vaut {PAS} et se trouve sur l'octet n° {octectPAS}\n")
 
     #Ressort un "tableau" de sous réseaux
     for res in range(0, int(nbrRes)):
@@ -263,8 +259,7 @@ def calculSousRéseau(ip, masque, nbrRes):
         sousResLastIP = ".".join(sousResLastIP)
 
         #Phrase affichant les résultats
-        print(f"sous réseau n° {res + 1} : Adresse sous réseau : {sousResIP}; Adresse de Broadcast : {sousResBC}; 1ère IP : {sousResFirstIP}; Dernière IP : {sousResLastIP}.")
-        print("")
+        print(f"sous réseau n° {res + 1} : Adresse sous réseau : {sousResIP}; Adresse de Broadcast : {sousResBC}; 1ère IP : {sousResFirstIP}; Dernière IP : {sousResLastIP}.\n")
 
         #Modifie l'adresse IP pour continuer la boucle.
         splitIp = ip.split(".", 3)
@@ -280,19 +275,7 @@ def programFinal(ip, sousRes, masque=""):
     else:
         masque, ip = splitElements(ip)
         calculSousRéseau(calculBinaire(ip), toBinary(masque), sousRes)
-    """
-    if isClassFull:
-            print("Adresse de diffusion")
-            print(calculRéseauDiffusion(calculBinaire(ip), calculBinaire(masque)))
-            print("Adresse Broadcast")
-            print(calculRéseauBroadcast(calculBinaire(ip), calculBinaire(masque)))
-    else:
-            masque, ip = splitElements(ip)
-            print("Adresse de diffusion")
-            print(calculRéseauDiffusion(calculBinaire(ip), toBinary(masque)))
-            print("Adresse Broadcast")
-            print(calculRéseauBroadcast(calculBinaire(ip), toBinary(masque)))
-   """
+
 "192.168.1.53/24"
 "255.255.255.0"
 
@@ -317,5 +300,13 @@ if __name__ == "__main__":
 
         while True:
             sr_input = input("Entrez le nombre de sous réseau : ").strip()
-            break
+            #Vérifications du nombre de sous réseaux
+            if not sr_input.isdigit():
+                print("N'écrivez que des nombres, s'il vous plaît.")
+                print("Veuillez réessayer.\n")
+
+            elif sr_input in range(1, 101):
+                print("Erreur : Le nombre de sous réseaux doit être compris entre 1 et 100.")
+                print("Veuillez réessayer.\n")
+            else: break
         programFinal(ip_input, sr_input, mask_input)
