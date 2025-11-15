@@ -74,7 +74,7 @@ def checkElements(element, type):
 
     adresseDecoupe = element.split(".")
     if len(adresseDecoupe) != 4:
-        messagebox.showerror("Erreur", f"{type} doit avoir 4 parties.")
+        messagebox.showerror("Erreur", f"{type} doit avoir 4 octets.")
         return False
 
     for x in adresseDecoupe:
@@ -147,7 +147,7 @@ def calculBinaire(element):
         while int(n) > 0:
             n = int(n) / 2
             d = decimal.Decimal(n)
-            positive_result = abs(d.as_tuple().exponent)                                                                 #ça sert à quoi exactement? (jamais utulisé nan?)
+            positive_result = abs(d.as_tuple().exponent)
             if positive_result != 0:
                 partieAdresse.append("1")
             else:
@@ -482,6 +482,11 @@ class App(tk.Tk):
             try:
                 ip_part, bits = ip_input.split("/")
                 bits = int(bits)
+
+                if bits not in range(8, 31):
+                    messagebox.showerror("Erreur ", "Le masque doit avoir une valeur comprise entre 8 et 30.")
+                    return
+
                 masque = cidr_to_mask(bits)
                 ip = ip_part
             except:
